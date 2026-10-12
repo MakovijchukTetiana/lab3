@@ -1,0 +1,70 @@
+import numpy as np
+
+def f1(x, y):
+    return np.sin(x + 1.5) - y - 1.0
+
+
+def f2(x, y):
+    return np.cos(y - 1.5) + 2.0 * x
+
+def jacobian(x, y):
+    df1_dx = np.cos(x + 1.5)
+    df1_dy = -1.0
+    df2_dx = 2.0
+    df2_dy = -np.sin(y - 1.5)
+
+    return np.array([
+        [df1_dx, df1_dy],
+        [df2_dx, df2_dy]
+    ])
+
+
+def newton_method_system(x0, y0, tol=1e-3, max_iter=50):
+    x, y = x0, y0
+
+    print(
+        f"{'k':<3} | {'x(k)':<10} | {'y(k)':<10} | {'|x(k)-x(k-1)|':<15} | {'|y(k)-y(k-1)|':<15} | {'max_delta':<10} | {'Висновок'}")
+    print("-" * 88)
+    print(f"{0:<3} | {x:<10.5f} | {y:<10.5f} | {'-':<15} | {'-':<15} | {'-':<10} | -")
+
+    for k in range(1, max_iter + 1):
+        F = np.array([-f1(x, y), -f2(x, y)])
+
+        W = jacobian(x, y)
+
+        delta = np.linalg.solve(W, F)
+
+        x_new = x + delta[0]
+        y_new = y + delta[1]
+
+        delta_x = abs(x_new - x)
+        delta_y = abs(y_new - y)
+        max_delta = max(delta_x, delta_y)
+
+        status = f"<{tol}" if max_delta <= tol else f">{tol}"
+        print(
+            f"{k:<3} | {x_new:<10.5f} | {y_new:<10.5f} | {delta_x:<15.5f} | {delta_y:<15.5f} | {max_delta:<10.5f} | {status}")
+
+        if max_delta <= tol:
+            print("-" * 88)
+            print(f"Розв'язок знайдено за {k} ітерацій!")
+            print(f"x* = {x_new:.5f} ≈ {round(x_new, 3)}")
+            print(f"y* = {y_new:.5f} ≈ {round(y_new, 3)}")
+
+            print("\nПеревірка (підстановка коренів у систему):")
+            print(f"f1(x*, y*) = {f1(x_new, y_new):.6f} ")
+            print(f"f2(x*, y*) = {f2(x_new, y_new):.6f} ")
+            return x_new, y_new
+
+        x, y = x_new, y_new
+
+    print("Метод не зійшовся за задану кількість ітерацій.")
+    return None
+
+epsilon = 1e-3
+
+initial_x = 0.0
+initial_y = 0.0
+
+print("Метод Ньютона для розв'язування системи нелінійних рівнянь")
+newton_method_system(initial_x, initial_y, tol=epsilon)
